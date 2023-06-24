@@ -1,0 +1,54 @@
+{
+  "name": "@kindynosmx/next-boilerplate",
+  "version": "1.0.0",
+  "private": false,
+  "description": "Another Next.js boilerplate",
+  "license": "MIT",
+  "scripts": {
+    "build": "next build",
+    "dev": "next",
+    "format": "prettier --ignore-path .gitignore --ignore-path .prettierignore '**/*.{md,json,js,jsx,ts,tsx}' --write",
+    "prepare": "husky install",
+    "lint": "eslint --ignore-path .gitignore --ignore-path .eslintignore --cache --cache-location .husky/.eslintcache/ \"**/*.{js,jsx,ts,tsx}\" --max-warnings=0",
+    "start": "next start",
+    "tscheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "lint-staged": {
+    "**/*.{js,jsx,ts,tsx}": [
+      "yarn lint --fix"
+    ]
+  },
+  "dependencies": {
+    "@chakra-ui/next-js": "^2.1.4",
+    "@chakra-ui/react": "^2.7.1",
+    "@emotion/react": "^11.11.1",
+    "@emotion/styled": "^11.11.0",
+    "framer-motion": "^10.12.17",
+    "lodash": "^4.17.21",
+    "next": "^13.4.7",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@next/eslint-plugin-next": "^13.4.7",
+    "@types/node": "^20.3.1",
+    "@types/react": "^18.2.14",
+    "@types/react-dom": "^18.2.6",
+    "@typescript-eslint/eslint-plugin": "^5.60.0",
+    "@typescript-eslint/parser": "^5.60.0",
+    "eslint": "^8.43.0",
+    "eslint-config-next": "^13.4.7",
+    "eslint-config-prettier": "^8.8.0",
+    "eslint-plugin-chakra-ui": "^0.9.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "eslint-plugin-react": "^7.32.2",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-simple-import-sort": "^10.0.0",
+    "eslint-plugin-sort-keys-custom-order-fix": "^0.1.1",
+    "eslint-plugin-unused-imports": "^2.0.0",
+    "husky": "^8.0.3",
+    "lint-staged": "^13.2.2",
+    "prettier": "^2.8.8",
+    "typescript": "^5.1.3"
+  }
+}
