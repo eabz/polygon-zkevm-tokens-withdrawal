@@ -1,11 +1,12 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
-interface IToken {
+export interface IToken {
   address: string
   name: string
   symbol: string
   decimals: number
+  logoURI?: string
 }
 
 interface ITokenStore {

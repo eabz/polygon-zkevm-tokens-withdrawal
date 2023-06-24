@@ -4,6 +4,14 @@ const config = {
   experimental: {
     appDir: true,
   },
+  images: {
+    remotePatterns: [
+      {
+        hostname: '**',
+        protocol: 'https',
+      },
+    ],
+  },
   reactStrictMode: true,
   swcMinify: true,
 }

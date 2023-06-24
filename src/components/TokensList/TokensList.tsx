@@ -2,15 +2,30 @@
 
 import { IconButton } from '@chakra-ui/button'
 import { Card, CardBody, CardFooter, CardHeader } from '@chakra-ui/card'
-import { Box, Center, Heading, HStack, Stack, StackDivider, Text } from '@chakra-ui/layout'
+import { Center, Heading, HStack, Stack, StackDivider, Text } from '@chakra-ui/layout'
 import { Spinner } from '@chakra-ui/spinner'
+import Image from 'next/image'
+import { useMemo } from 'react'
 import { useAccount } from 'wagmi'
 
 import { AddIcon } from '@/assets'
 import { ConnectWallet } from '@/components'
+import { defaultTokensLists } from '@/constants'
+import { IToken, useTokenStore } from '@/store'
 
 export function TokensList() {
+  const { tokens } = useTokenStore()
+
   const { isConnected, isConnecting } = useAccount()
+
+  const tokensList: IToken[] = useMemo(() => {
+    const defaultTokens = defaultTokensLists
+    for (const token of Object.values(tokens)) {
+      defaultTokens.unshift(token)
+    }
+    return defaultTokens
+  }, [tokens])
+
   return (
     <Card
       backgroundColor="rgba(255, 255, 255, 0.5)"
@@ -39,54 +54,17 @@ export function TokensList() {
         )}
         {isConnected && !isConnecting && (
           <Stack divider={<StackDivider />} spacing="4">
-            <Box>
-              <Heading size="xs" textTransform="uppercase">
-                Summary
-              </Heading>
-              <Text fontSize="sm" paddingTop="2">
-                View a summary of all your clients over the last month.
-              </Text>
-            </Box>
-            <Box>
-              <Heading size="xs" textTransform="uppercase">
-                Overview
-              </Heading>
-              <Text fontSize="sm" paddingTop="2">
-                Check out the overview of your clients.
-              </Text>
-            </Box>
-            <Box>
-              <Heading size="xs" textTransform="uppercase">
-                Analysis
-              </Heading>
-              <Text fontSize="sm" paddingTop="2">
-                See a detailed analysis of all your business clients.
-              </Text>
-            </Box>
-            <Box>
-              <Heading size="xs" textTransform="uppercase">
-                Analysis
-              </Heading>
-              <Text fontSize="sm" paddingTop="2">
-                See a detailed analysis of all your business clients.
-              </Text>
-            </Box>
-            <Box>
-              <Heading size="xs" textTransform="uppercase">
-                Analysis
-              </Heading>
-              <Text fontSize="sm" paddingTop="2">
-                See a detailed analysis of all your business clients.
-              </Text>
-            </Box>
-            <Box>
-              <Heading size="xs" textTransform="uppercase">
-                Analysis
-              </Heading>
-              <Text fontSize="sm" paddingTop="2">
-                See a detailed analysis of all your business clients.
-              </Text>
-            </Box>
+            {tokensList.map((token) => (
+              <HStack key={token.address} justifyContent="space-between">
+                <HStack>
+                  <Image height="20" src={token.logoURI} width="20" />
+                  <Text fontSize="16px">{token.name}</Text>
+                  <Text fontSize="14px" fontWeight="bold" textTransform="uppercase">
+                    {token.symbol}
+                  </Text>
+                </HStack>
+              </HStack>
+            ))}
           </Stack>
         )}
       </CardBody>
