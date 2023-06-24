@@ -1,9 +1,14 @@
 {
-  "name": "@kindynosmx/next-boilerplate",
+  "name": "polygon-zkevm-tokens-withdrawal",
   "version": "1.0.0",
   "private": false,
-  "description": "Another Next.js boilerplate",
+  "description": "Polygon ZkEVM Tokens Withdrawals",
   "license": "MIT",
+  "author": {
+    "name": "0xeabz",
+    "email": "eabz@kindynos.mx",
+    "url": "https://twitter.com/0xeabz"
+  },
   "scripts": {
     "build": "next build",
     "dev": "next",

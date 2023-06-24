@@ -1,8 +1,8 @@
 {
-  "name": "Next.js Boilerplate",
-  "short_name": "Next.js Boilerplate",
-  "theme_color": "#426DA9",
-  "background_color": "#426DA9",
+  "name": "Polygon ZkEVM Tokens Withdrawals",
+  "short_name": "Polygon ZkEVM Tokens Withdrawals",
+  "theme_color": "#7b3fe4",
+  "background_color": "#7b3fe4",
   "display": "standalone",
   "scope": "/",
   "start_url": "/",

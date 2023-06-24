@@ -1,10 +1,10 @@
 import { Metadata } from 'next'
 
-const description = 'Another Next.js boilerplate'
+const description = 'Polygon zkEVM dapp to track token balances and use the force withdrawal'
 
-const url = 'https://kindynos.mx'
+const url = 'http://localhost'
 
-const title = 'Next.js boilerplate'
+const title = 'Polygon ZkEVM Tokens Withdrawals'
 
 export const defaultMetadata: Metadata = {
   description,
@@ -21,7 +21,7 @@ export const defaultMetadata: Metadata = {
       { sizes: '152x152', type: 'image/png', url: '/static/apple-icon-152x152.png' },
       { sizes: '180x180', type: 'image/png', url: '/static/apple-icon-180x180.png' },
     ],
-    icon: [{ url: '/static/apple-icon.png' }, new URL('/static/apple-icon.png', 'https://kindynos.mx')],
+    icon: [{ url: '/static/apple-icon.png' }, new URL('/static/apple-icon.png', 'http://localhost')],
     other: {
       rel: 'apple-icon-precomposed',
       url: '/static/apple-icon-precomposed.png',
@@ -35,6 +35,6 @@ export const defaultMetadata: Metadata = {
     type: 'website',
     url,
   },
-  themeColor: '#426DA9',
+  themeColor: '#7b3fe4',
   title,
 }
