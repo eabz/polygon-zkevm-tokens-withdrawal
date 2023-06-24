@@ -55,7 +55,6 @@ export const theme = extendTheme({
   colors: {
     accent: '#7b3fe4',
     background: '#d5bdf5',
-    'dark-gray': '##8d8a95',
     'light-gray': '#f1f3f2',
     red: '#b30000',
   },

@@ -1,5 +1,6 @@
 'use client'
 
-export * from './ConnectWallet'
 export * from './Navbar'
+export * from './RainbowKit'
+export * from './Token'
 export * from './TokensList'

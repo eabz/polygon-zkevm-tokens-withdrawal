@@ -1,3 +1,5 @@
+'use client'
+
 import { IToken } from '@/store'
 
 export const defaultTokensLists: IToken[] = [
