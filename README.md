@@ -2,8 +2,6 @@
 <strong>Polygon zkEVM Tokens Withdrawal</strong>
 </h1>
 
-## What is inside?
-
 This project uses lot of stuff as:
 
 - [typescript](https://www.typescriptlang.org)
@@ -22,7 +20,7 @@ First of all, install the dependencies to run this app:
 
 ```bash
 # Clone this repository
-$ git clone https://github.com/kindynosmx/next-boilerplate && cd next-boilerplate
+$ git clone https://github.com/eabz/polygon-zkevm-tokens-withdrawal && cd polygon-zkevm-tokens-withdrawal
 
 # Install dependencies
 $ yarn install
