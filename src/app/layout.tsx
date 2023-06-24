@@ -1,3 +1,4 @@
+import { RainbowKit } from '@/components'
 import { ThemeProvider } from '@/theme'
 import { defaultMetadata } from '@/utils'
 
@@ -7,7 +8,9 @@ export default async function RootLayout({ children }) {
   return (
     <html>
       <body>
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          <RainbowKit>{children}</RainbowKit>
+        </ThemeProvider>
       </body>
     </html>
   )
