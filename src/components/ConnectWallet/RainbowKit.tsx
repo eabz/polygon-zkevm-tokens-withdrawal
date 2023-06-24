@@ -13,13 +13,13 @@ import {
 import Image from 'next/image'
 import { ReactNode, useMemo } from 'react'
 import { goerli, polygonZkEvmTestnet } from 'viem/chains'
-import { configureChains, createConfig, mainnet, WagmiConfig } from 'wagmi'
+import { configureChains, createConfig, WagmiConfig } from 'wagmi'
 import { publicProvider } from 'wagmi/providers/public'
 
 import { walletTheme } from '@/theme'
 
 export function RainbowKit({ children }: { children: ReactNode }) {
-  const { chains, publicClient } = configureChains([mainnet, goerli, polygonZkEvmTestnet], [publicProvider()])
+  const { chains, publicClient } = configureChains([goerli, polygonZkEvmTestnet], [publicProvider()])
 
   const connectors = useMemo(() => {
     const projectId = 'polygon-zkevm-tokens'
@@ -39,7 +39,6 @@ export function RainbowKit({ children }: { children: ReactNode }) {
   }, [chains])
 
   const wagmiClient = createConfig({
-    autoConnect: true,
     connectors,
     publicClient,
   })

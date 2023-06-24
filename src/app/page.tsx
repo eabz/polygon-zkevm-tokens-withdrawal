@@ -1,8 +1,10 @@
 'use client'
 
-import { Center, Stack, Text, VStack } from '@chakra-ui/layout'
+import '@/theme/style.css'
 
-import { Navbar } from '@/components'
+import { Center, Stack, VStack } from '@chakra-ui/layout'
+
+import { Navbar, TokensList } from '@/components'
 
 export default function Home() {
   return (
@@ -10,7 +12,7 @@ export default function Home() {
       <Navbar />
       <Center height="calc(100vh)" width="calc(100vw)">
         <VStack>
-          <Text>CONTENT</Text>
+          <TokensList />
         </VStack>
       </Center>
     </Stack>
