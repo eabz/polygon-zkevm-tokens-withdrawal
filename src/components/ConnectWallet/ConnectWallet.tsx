@@ -37,7 +37,7 @@ export function ConnectWallet() {
               size="sm"
               onClick={() => openAccountModal()}
             >
-              <Text fontSize="16px" fontWeight="500">
+              <Text fontSize="16px" fontWeight="700">
                 {account.displayName}
               </Text>
             </Button>

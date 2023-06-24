@@ -28,8 +28,7 @@ export function RainbowKit({ children }: { children: ReactNode }) {
 
   const walletAvatars: AvatarComponent = ({ ensImage, size }) => {
     return ensImage ? (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img alt="ENS Image" height={size} src={ensImage} style={{ borderRadius: 999 }} width={size} />
+      <Image alt="ENS Image" height={size} src={ensImage} style={{ borderRadius: 999 }} width={size} />
     ) : (
       <Image
         alt="Polygon ZkEVM Logo"
