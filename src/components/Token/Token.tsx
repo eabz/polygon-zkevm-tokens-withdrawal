@@ -6,32 +6,42 @@ import { Box, HStack, Text, VStack } from '@chakra-ui/layout'
 import { Spinner } from '@chakra-ui/spinner'
 import { useChainModal } from '@rainbow-me/rainbowkit'
 import { useEffect, useState } from 'react'
-import { Address, useAccount, useContractRead, useNetwork } from 'wagmi'
+import { formatUnits } from 'viem'
+import { Address, useAccount, useBalance, useContractRead, useNetwork } from 'wagmi'
 
 import { UnknownIcon } from '@/assets'
-import { polygonZkEVMChainID, tokenWrapperABI } from '@/constants'
+import { nativeTokenAddress, polygonZkEVMChainID, tokenWrapperABI } from '@/constants'
 import { IToken } from '@/store'
 
 export function Token({ tokenData }: { tokenData: IToken }) {
   const { address } = useAccount()
 
-  const [balance, setBalance] = useState(0)
+  const { data: nativeTokenBalance, isLoading: nativeTokenBalanceLoading } = useBalance({ address })
+
+  const [balance, setBalance] = useState('0')
 
   const { chain } = useNetwork()
 
-  const { data, isLoading } = useContractRead({
+  const { data: tokenBalance, isLoading: tokenBalanceLoading } = useContractRead({
     abi: tokenWrapperABI,
     address: tokenData.address as Address,
     args: [address as Address],
-    enabled: address && chain && chain.id === polygonZkEVMChainID,
+    enabled: address && tokenData.address !== nativeTokenAddress && chain && chain.id === polygonZkEVMChainID,
     functionName: 'balanceOf',
   })
 
   useEffect(() => {
-    if (!chain || chain.id !== polygonZkEVMChainID) return
+    if (!chain || chain.id !== polygonZkEVMChainID || !nativeTokenBalance) return
 
-    setBalance(balance)
-  }, [balance, chain, data])
+    let balanceFormatted = '0'
+    if (tokenData.address === nativeTokenAddress) {
+      balanceFormatted = parseFloat(formatUnits(nativeTokenBalance.value, tokenData.decimals)).toFixed(3)
+    } else {
+      balanceFormatted = parseFloat(formatUnits(tokenBalance as bigint, tokenData.decimals)).toFixed(3)
+    }
+
+    setBalance(balanceFormatted)
+  }, [balance, chain, nativeTokenBalance, tokenBalance, tokenData.address, tokenData.decimals])
 
   const { openChainModal } = useChainModal()
 
@@ -51,7 +61,9 @@ export function Token({ tokenData }: { tokenData: IToken }) {
         </Box>
       </HStack>
       {chain?.id === polygonZkEVMChainID ? (
-        <Box>{isLoading ? <Spinner color="gray" /> : <Text>{balance}</Text>}</Box>
+        <Box>
+          {tokenBalanceLoading || nativeTokenBalanceLoading ? <Spinner color="gray" /> : <Text>{balance}</Text>}
+        </Box>
       ) : (
         openChainModal && (
           <Button _hover={{ background: 'red' }} background="red" size="xs" onClick={() => openChainModal()}>
