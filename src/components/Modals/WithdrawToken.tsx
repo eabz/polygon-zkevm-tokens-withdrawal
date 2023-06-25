@@ -5,9 +5,14 @@ import { Button } from '@chakra-ui/button'
 import { Input, InputGroup, InputRightElement } from '@chakra-ui/input'
 import { Box, Center, Heading, Text, VStack } from '@chakra-ui/layout'
 import { Modal, ModalBody, ModalCloseButton, ModalContent, ModalHeader, ModalOverlay } from '@chakra-ui/modal'
-import { useState } from 'react'
+import { Spinner } from '@chakra-ui/spinner'
+import { useChainModal } from '@rainbow-me/rainbowkit'
+import { useEffect, useState } from 'react'
+import { Abi, Address, formatUnits } from 'viem'
+import { useAccount, useContractReads, useContractWrite, useNetwork } from 'wagmi'
 
 import { UnknownIcon } from '@/assets'
+import { l1MaticTokenAddress, polygonZkEVMChainID, tokenWrapperABI, zkEVMABI, zkEVMAddress } from '@/constants'
 import { IToken } from '@/store'
 
 export function WithdrawTokenModal({
@@ -21,13 +26,59 @@ export function WithdrawTokenModal({
   balance: string
   onClose: () => void
 }) {
+  const { address } = useAccount()
+
+  const { chain } = useNetwork()
+
+  const { openChainModal } = useChainModal()
+
   const [value, setValue] = useState(parseFloat(balance))
+
+  const [allowed, setAllowed] = useState<{ allowed: boolean; amount: number }>({ allowed: false, amount: 0 })
+
+  const { data, isLoading } = useContractReads({
+    allowFailure: true,
+    contracts: [
+      {
+        abi: tokenWrapperABI as Abi,
+        address: l1MaticTokenAddress,
+        args: [address as Address, zkEVMAddress],
+        functionName: 'allowance',
+      },
+      {
+        abi: zkEVMABI as Abi,
+        address: zkEVMAddress,
+        functionName: 'getForcedBatchFee',
+      },
+    ],
+    enabled: address !== undefined && chain?.id !== polygonZkEVMChainID,
+  })
 
   const handleOnChange = (amount: string) => {
     if (amount === '') {
       setValue(0)
     }
     setValue(parseFloat(amount))
+  }
+
+  useEffect(() => {
+    if (isLoading || !data || data.length !== 2 || data[0].status === 'failure' || data[1].status === 'failure') return
+
+    const allowance = parseFloat(formatUnits(data[0].result as bigint, 18))
+
+    const fee = parseFloat(formatUnits(data[1].result as bigint, 18))
+
+    setAllowed({ allowed: allowance >= fee, amount: fee })
+  }, [data, isLoading])
+
+  const { isLoading: isLoadingApproval, write: submitApproval } = useContractWrite({
+    abi: tokenWrapperABI,
+    address: l1MaticTokenAddress,
+    functionName: 'approve',
+  })
+
+  const handleApprove = (amount: number) => {
+    submitApproval({ args: [zkEVMAddress as Address, amount * 1 ** 18] })
   }
 
   return (
@@ -81,16 +132,42 @@ export function WithdrawTokenModal({
                       </Button>
                     </InputRightElement>
                   </InputGroup>
-                  <Button
-                    _hover={{ background: 'accent' }}
-                    background="accent"
-                    color="white"
-                    isDisabled={value === 0}
-                    size="md"
-                    onClick={() => setValue(parseFloat(balance))}
-                  >
-                    Withdraw
-                  </Button>
+                  {chain?.id === polygonZkEVMChainID && (
+                    <Button
+                      _hover={{ background: 'accent' }}
+                      background="accent"
+                      color="white"
+                      isDisabled={value === 0}
+                      size="md"
+                      onClick={openChainModal}
+                    >
+                      Change to L1
+                    </Button>
+                  )}
+                  {chain?.id !== polygonZkEVMChainID && !allowed.allowed && (
+                    <Button
+                      _hover={{ background: 'accent' }}
+                      background="accent"
+                      color="white"
+                      isDisabled={value === 0}
+                      size="md"
+                      onClick={() => handleApprove(allowed.amount)}
+                    >
+                      {isLoadingApproval ? <Spinner color="white" size="sm" /> : <Text>Approve</Text>}
+                    </Button>
+                  )}
+                  {chain?.id !== polygonZkEVMChainID && allowed.allowed && (
+                    <Button
+                      _hover={{ background: 'accent' }}
+                      background="accent"
+                      color="white"
+                      isDisabled={value === 0}
+                      size="md"
+                      onClick={() => setValue(parseFloat(balance))}
+                    >
+                      Withdraw
+                    </Button>
+                  )}
                 </VStack>
               </Center>
             </Box>
