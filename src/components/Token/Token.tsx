@@ -13,7 +13,13 @@ import { UnknownIcon } from '@/assets'
 import { nativeTokenAddress, polygonZkEVMChainID, tokenWrapperABI } from '@/constants'
 import { IToken } from '@/store'
 
-export function Token({ tokenData }: { tokenData: IToken }) {
+export function Token({
+  tokenData,
+  openWithdraw,
+}: {
+  tokenData: IToken
+  openWithdraw: (token: IToken, balance: string) => void
+}) {
   const { address } = useAccount()
 
   const { data: nativeTokenBalance, isLoading: nativeTokenBalanceLoading } = useBalance({ address })
@@ -61,9 +67,20 @@ export function Token({ tokenData }: { tokenData: IToken }) {
         </Box>
       </HStack>
       {chain?.id === polygonZkEVMChainID ? (
-        <Box>
-          {tokenBalanceLoading || nativeTokenBalanceLoading ? <Spinner color="gray" /> : <Text>{balance}</Text>}
-        </Box>
+        <HStack>
+          <Box>
+            {tokenBalanceLoading || nativeTokenBalanceLoading ? <Spinner color="gray" /> : <Text>{balance}</Text>}
+          </Box>
+          <Button
+            _hover={{ background: 'accent' }}
+            background="accent"
+            color="white"
+            size="xs"
+            onClick={() => openWithdraw(tokenData, balance)}
+          >
+            Withdraw
+          </Button>
+        </HStack>
       ) : (
         openChainModal && (
           <Button _hover={{ background: 'red' }} background="red" size="xs" onClick={() => openChainModal()}>

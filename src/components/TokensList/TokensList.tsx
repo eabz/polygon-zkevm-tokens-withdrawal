@@ -6,10 +6,11 @@ import { useDisclosure } from '@chakra-ui/hooks'
 import { Center, Heading, HStack, Stack, StackDivider } from '@chakra-ui/layout'
 import { Spinner } from '@chakra-ui/spinner'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
+import { useState } from 'react'
 import { useAccount, useNetwork } from 'wagmi'
 
 import { AddIcon } from '@/assets'
-import { AddTokenModal, Token } from '@/components'
+import { AddTokenModal, Token, WithdrawTokenModal } from '@/components'
 import { defaultTokensLists, polygonZkEVMChainID } from '@/constants'
 import { useIsMounted } from '@/hooks'
 import { IToken, useTokenStore } from '@/store'
@@ -29,7 +30,8 @@ const getTokensList = (tokens: Record<string, IToken>): IToken[] => {
 }
 
 export function TokensList() {
-  const { isOpen, onClose, onOpen } = useDisclosure()
+  const { isOpen: isOpenAddToken, onClose: onCloseAddToken, onOpen: onOpenAddToken } = useDisclosure()
+  const { isOpen: isOpenWithdrawToken, onClose: onCloseWithdrawToken, onOpen: onOpenWithdrawToken } = useDisclosure()
 
   const { tokens } = useTokenStore()
 
@@ -37,14 +39,34 @@ export function TokensList() {
 
   const { chain } = useNetwork()
 
+  const [withdrawToken, setWithdrawToken] = useState<{ token: IToken; balance: string } | undefined>(undefined)
+
   const isMounted = useIsMounted()
   if (!isMounted) return null
 
   const tokensList: IToken[] = getTokensList(tokens)
 
+  const handleOpenWithdraw = (token: IToken, balance: string) => {
+    setWithdrawToken({ balance, token })
+    onOpenWithdrawToken()
+  }
+
+  const handleWithdrawTokenClose = () => {
+    setWithdrawToken(undefined)
+    onCloseWithdrawToken()
+  }
+
   return (
     <>
-      <AddTokenModal isOpen={isOpen} onClose={onClose} />
+      <AddTokenModal isOpen={isOpenAddToken} onClose={onCloseAddToken} />
+      {withdrawToken && (
+        <WithdrawTokenModal
+          balance={withdrawToken.balance}
+          isOpen={isOpenWithdrawToken}
+          withdrawToken={withdrawToken.token}
+          onClose={handleWithdrawTokenClose}
+        />
+      )}
       <Card
         backgroundColor="rgba(255, 255, 255, 0.5)"
         boxShadow="xl"
@@ -61,7 +83,7 @@ export function TokensList() {
                 icon={<AddIcon boxSize={4} />}
                 rounded="full"
                 size="sm"
-                onClick={onOpen}
+                onClick={onOpenAddToken}
               />
             )}
           </HStack>
@@ -83,7 +105,7 @@ export function TokensList() {
           {isConnected && !isConnecting && (
             <Stack divider={<StackDivider color="gray" />} spacing="4">
               {tokensList.map((token) => (
-                <Token key={token.address} tokenData={token} />
+                <Token key={token.address} openWithdraw={handleOpenWithdraw} tokenData={token} />
               ))}
             </Stack>
           )}
