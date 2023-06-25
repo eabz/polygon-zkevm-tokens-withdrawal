@@ -1,13 +1,15 @@
 'use client'
 
 import { Avatar } from '@chakra-ui/avatar'
+import { Button } from '@chakra-ui/button'
 import { Box, HStack, Text, VStack } from '@chakra-ui/layout'
 import { Spinner } from '@chakra-ui/spinner'
+import { useChainModal } from '@rainbow-me/rainbowkit'
 import { useEffect, useState } from 'react'
 import { Address, useAccount, useContractRead, useNetwork } from 'wagmi'
 
 import { UnknownIcon } from '@/assets'
-import { tokenWrapperABI } from '@/constants/abis'
+import { polygonZkEVMChainID, tokenWrapperABI } from '@/constants'
 import { IToken } from '@/store'
 
 export function Token({ tokenData }: { tokenData: IToken }) {
@@ -21,22 +23,22 @@ export function Token({ tokenData }: { tokenData: IToken }) {
     abi: tokenWrapperABI,
     address: tokenData.address as Address,
     args: [address as Address],
-    enabled: address && chain && chain.id === 0x44d,
+    enabled: address && chain && chain.id === polygonZkEVMChainID,
     functionName: 'balanceOf',
   })
 
   useEffect(() => {
-    if (!chain || chain.id !== 0x44d) return
+    if (!chain || chain.id !== polygonZkEVMChainID) return
 
     setBalance(balance)
   }, [balance, chain, data])
 
+  const { openChainModal } = useChainModal()
+
   return (
     <HStack key={tokenData.address} justifyContent="space-between">
       <HStack>
-        <Box>
-          <Avatar background="accent" icon={<UnknownIcon fontSize="1.5rem" />} size="sm" src={tokenData.logoURI} />
-        </Box>
+        <Avatar background="accent" icon={<UnknownIcon fontSize="1.5rem" />} size="sm" src={tokenData.logoURI} />
         <Box>
           <VStack align="start">
             <Text fontSize="16px" fontWeight="600" lineHeight="10px">
@@ -48,7 +50,17 @@ export function Token({ tokenData }: { tokenData: IToken }) {
           </VStack>
         </Box>
       </HStack>
-      <Box>{isLoading ? <Spinner color="gray" /> : <Text>{balance}</Text>}</Box>
+      {chain?.id === polygonZkEVMChainID ? (
+        <Box>{isLoading ? <Spinner color="gray" /> : <Text>{balance}</Text>}</Box>
+      ) : (
+        openChainModal && (
+          <Button _hover={{ background: 'red' }} background="red" size="xs" onClick={() => openChainModal()}>
+            <Text color="white" cursor="pointer" fontSize="xs">
+              Change to L2 Network
+            </Text>
+          </Button>
+        )
+      )}
     </HStack>
   )
 }

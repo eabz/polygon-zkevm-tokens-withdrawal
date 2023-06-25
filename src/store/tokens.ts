@@ -1,7 +1,7 @@
-'use client'
-
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+
+import { defaultTokensLists } from '@/constants'
 
 export interface IToken {
   address: string
@@ -18,7 +18,17 @@ interface ITokenStore {
 }
 
 function addToken(record: Record<string, IToken>, token: IToken): Record<string, IToken> {
-  record[token.address] = token
+  const alreadyIncluded = defaultTokensLists.map((token) => token.address).includes(token.address.toLowerCase())
+  console.log(alreadyIncluded)
+  if (alreadyIncluded) {
+    return record
+  }
+
+  console.log(record)
+
+  record[token.address.toLowerCase()] = token
+  console.log(record)
+
   return record
 }
 

@@ -12,33 +12,11 @@ export const defaultTokensLists: IToken[] = [
     symbol: 'USDT',
   },
   {
-    address: '0x4f9a0e7fd2bf6067db6994cf12e4495df938e6e9',
-    decimals: 18,
-    logoURI:
-      'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2/logo.png',
-    name: 'Wrapped Ether',
-    symbol: 'WETH',
-  },
-  {
-    address: '0x6b856a14cea1d7dcfaf80fa6936c0b75972ccace',
-    decimals: 18,
-    logoURI: 'https://assets.coingecko.com/coins/images/13423/small/Frax_Shares_icon.png?1679886947',
-    name: 'Frax Share',
-    symbol: 'FXS',
-  },
-  {
     address: '0x27a4bf80c2d63e42437258533dac7eaff9881bdb',
     decimals: 18,
     logoURI: 'https://raw.githubusercontent.com/0xlaozi/qidao/main/images/mimatic-red.png',
     name: 'Mai Stablecoin',
     symbol: 'MAI',
-  },
-  {
-    address: '0x83b874c1e09d316059d929da402dcb1a98e92082',
-    decimals: 18,
-    logoURI: 'https://assets.coingecko.com/coins/images/24185/small/stMATIC.png?1646789287',
-    name: 'Staked MATIC',
-    symbol: 'stMATIC',
   },
   {
     address: '0x68286607a1d43602d880d349187c3c48c0fd05e6',
@@ -77,19 +55,5 @@ export const defaultTokensLists: IToken[] = [
       'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0x6B175474E89094C44Da98b954EedeAC495271d0F/logo.png',
     name: 'Dai Stablecoin',
     symbol: 'DAI',
-  },
-  {
-    address: '0xcf7ecee185f19e2e970a301ee37f93536ed66179',
-    decimals: 18,
-    logoURI: 'https://assets.coingecko.com/coins/images/28284/small/frxETH_icon.png?1679886981',
-    name: 'Frax Ether',
-    symbol: 'frxETH',
-  },
-  {
-    address: '0xff8544fed5379d9ffa8d47a74ce6b91e632ac44d',
-    decimals: 18,
-    logoURI: 'https://assets.coingecko.com/coins/images/13422/small/FRAX_icon.png?1679886922',
-    name: 'Frax',
-    symbol: 'FRAX',
   },
 ]
