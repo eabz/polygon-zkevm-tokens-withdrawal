@@ -7,8 +7,17 @@ import { Box, Center, Heading, Text, VStack } from '@chakra-ui/layout'
 import { Modal, ModalBody, ModalCloseButton, ModalContent, ModalHeader, ModalOverlay } from '@chakra-ui/modal'
 import { Spinner } from '@chakra-ui/spinner'
 import { useEffect, useState } from 'react'
-import { Abi, Address, encodeFunctionData, formatUnits, parseUnits, zeroAddress } from 'viem'
-import { useAccount, useContractRead, useContractWrite, useFeeData, useNetwork, useSwitchNetwork } from 'wagmi'
+import { Abi, Address, encodeFunctionData, formatUnits, Hex, parseUnits, TransactionLegacy, zeroAddress } from 'viem'
+import {
+  useAccount,
+  useContractRead,
+  useContractWrite,
+  useFeeData,
+  useNetwork,
+  useSendTransaction,
+  useSwitchNetwork,
+  useTransaction,
+} from 'wagmi'
 
 import { UnknownIcon } from '@/assets'
 import {
@@ -23,6 +32,7 @@ import {
   zkEVMBridgeAddress,
 } from '@/constants'
 import { IToken } from '@/store'
+import { rawTxToCustomRawTx } from '@/utils'
 
 export function WithdrawTokenModal({
   isOpen,
@@ -124,20 +134,52 @@ export function WithdrawTokenModal({
 
     const amountParsed = parseUnits(amount.toString(), 18)
 
-    await submitApprovalBatch({ args: [zkEVMAddress as Address, amountParsed] })
+    try {
+      await submitApprovalBatch({ args: [zkEVMAddress as Address, amountParsed] })
+    } catch (e) {
+      console.log('error: => submitApprovalBatch ')
+    }
   }
 
   const handleApproveBridge = async (amount: number) => {
     const amountParsed = parseUnits(amount.toString(), withdrawToken.decimals)
 
-    await submitApprovalBridge({ args: [zkEVMBridgeAddress as Address, amountParsed] })
+    try {
+      await submitApprovalBridge({ args: [zkEVMBridgeAddress as Address, amountParsed] })
+    } catch (e) {
+      console.log('error: => submitApprovalBridge ')
+    }
   }
-
-  const [signedTransaction, setSignedTransaction] = useState<string | undefined>(undefined)
 
   const { switchNetwork } = useSwitchNetwork()
 
   const { data: feeData } = useFeeData()
+
+  const { sendTransactionAsync } = useSendTransaction({ to: zkEVMAddress })
+
+  const [signedTransaction, setSignedTransaction] = useState<string | undefined>(undefined)
+
+  const [transaction, setTransactionHash] = useState<Hex | undefined>(undefined)
+
+  const { data: transactionData } = useTransaction({
+    hash: transaction,
+  })
+
+  useEffect(() => {
+    if (!transactionData) return
+
+    const rawTx = rawTxToCustomRawTx(transactionData as TransactionLegacy)
+
+    setSignedTransaction(rawTx)
+
+    setTransactionLoading(false)
+
+    if (switchNetwork) {
+      switchNetwork(l1ChainID)
+    }
+  }, [switchNetwork, transactionData])
+
+  const [transactionLoading, setTransactionLoading] = useState(false)
 
   const handleSignTransaction = async (amount: number) => {
     if (!feeData) return
@@ -155,22 +197,15 @@ export function WithdrawTokenModal({
     const tx = {
       data: withdrawFunction,
       from: address,
-      gasLimit: 0,
-      gasPrice: feeData.gasPrice,
+      gasPrice: feeData.gasPrice ?? undefined,
       to: zkEVMAddress,
-      value: isNative ? amountParsed : 0,
+      value: isNative ? amountParsed : BigInt(0),
     }
-    console.log(tx)
 
-    //tx.gasLimit = Math.floor(totalGas + totalGas * 0.1)
-
-    // TODO: find a way to add the nonce and the gasLimit
-    // TODO: find a way to sign a transaction.
-
-    setSignedTransaction('')
-
-    if (switchNetwork) {
-      switchNetwork(l1ChainID)
+    if (sendTransactionAsync) {
+      const transaction = await sendTransactionAsync(tx)
+      setTransactionLoading(true)
+      setTransactionHash(transaction.hash)
     }
   }
 
@@ -183,11 +218,13 @@ export function WithdrawTokenModal({
   const handleWithdraw = async (signedTx: string | undefined, forceBatchFee: number | undefined) => {
     if (!signedTx || !forceBatchFee) return
 
-    const fee = parseFloat(formatUnits(forceBatchFeeData as bigint, 18))
+    const fee = parseUnits(forceBatchFee.toString(), 18)
 
-    await submitForceBatch({ args: [signedTx, fee] })
-
-    onClose()
+    try {
+      await submitForceBatch({ args: [signedTx, fee] })
+    } catch (e) {
+      console.log('error: => submitForceBatch ')
+    }
   }
 
   return (
@@ -270,7 +307,7 @@ export function WithdrawTokenModal({
                       size="md"
                       onClick={() => handleSignTransaction(value)}
                     >
-                      {statusApprovalBridge === 'loading' ? (
+                      {statusApprovalBridge === 'loading' || transactionLoading ? (
                         <Spinner color="white" size="sm" />
                       ) : (
                         <Text>Sign Transaction</Text>
