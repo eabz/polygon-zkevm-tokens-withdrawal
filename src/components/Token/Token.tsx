@@ -40,9 +40,11 @@ export function Token({
     if (!chain || chain.id !== polygonZkEVMChainID || !nativeTokenBalance) return
 
     let balanceFormatted = '0'
+
     if (tokenData.address === nativeTokenAddress) {
       balanceFormatted = parseFloat(formatUnits(nativeTokenBalance.value, tokenData.decimals)).toFixed(3)
     } else {
+      if (!tokenBalance) return
       balanceFormatted = parseFloat(formatUnits(tokenBalance as bigint, tokenData.decimals)).toFixed(3)
     }
 
