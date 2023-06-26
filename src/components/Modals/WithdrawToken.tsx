@@ -162,6 +162,7 @@ export function WithdrawTokenModal({
   const [transaction, setTransactionHash] = useState<Hex | undefined>(undefined)
 
   const { data: transactionData } = useTransaction({
+    enabled: chain?.id === polygonZkEVMChainID,
     hash: transaction,
   })
 
@@ -252,33 +253,35 @@ export function WithdrawTokenModal({
                     <Text fontWeight="300">{withdrawToken.symbol}</Text>
                   </Box>
 
-                  <Text fontWeight="300">Select an amount to withdraw</Text>
                   {!signedTransaction && (
-                    <InputGroup>
-                      <Input
-                        background="light-gray"
-                        borderColor="accent"
-                        focusBorderColor="accent"
-                        placeholder={balance}
-                        textAlign="center"
-                        type="number"
-                        value={value}
-                        width="300px"
-                        onChange={(e) => handleOnChange(e.target.value)}
-                      />
-                      <InputRightElement>
-                        <Button
-                          _hover={{ background: 'accent' }}
-                          background="accent"
-                          color="white"
-                          marginRight="2"
-                          size="xs"
-                          onClick={() => setValue(parseFloat(balance))}
-                        >
-                          Max
-                        </Button>
-                      </InputRightElement>
-                    </InputGroup>
+                    <>
+                      <Text fontWeight="300">Select an amount to withdraw</Text>
+                      <InputGroup>
+                        <Input
+                          background="light-gray"
+                          borderColor="accent"
+                          focusBorderColor="accent"
+                          placeholder={balance}
+                          textAlign="center"
+                          type="number"
+                          value={value}
+                          width="300px"
+                          onChange={(e) => handleOnChange(e.target.value)}
+                        />
+                        <InputRightElement>
+                          <Button
+                            _hover={{ background: 'accent' }}
+                            background="accent"
+                            color="white"
+                            marginRight="2"
+                            size="xs"
+                            onClick={() => setValue(parseFloat(balance))}
+                          >
+                            Max
+                          </Button>
+                        </InputRightElement>
+                      </InputGroup>
+                    </>
                   )}
 
                   {chain?.id === polygonZkEVMChainID && !bridgeAllowed && (
