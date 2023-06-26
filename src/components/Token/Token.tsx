@@ -10,7 +10,7 @@ import { formatUnits } from 'viem'
 import { Address, useAccount, useBalance, useContractRead, useNetwork } from 'wagmi'
 
 import { UnknownIcon } from '@/assets'
-import { nativeTokenAddress, polygonZkEVMChainID, tokenWrapperABI } from '@/constants'
+import { isNativeToken, polygonZkEVMChainID, tokenWrapperABI } from '@/constants'
 import { IToken } from '@/store'
 
 export function Token({
@@ -32,7 +32,7 @@ export function Token({
     abi: tokenWrapperABI,
     address: tokenData.address as Address,
     args: [address as Address],
-    enabled: address && tokenData.address !== nativeTokenAddress && chain && chain.id === polygonZkEVMChainID,
+    enabled: address && !isNativeToken(tokenData.address) && chain && chain.id === polygonZkEVMChainID,
     functionName: 'balanceOf',
   })
 
@@ -41,7 +41,7 @@ export function Token({
 
     let balanceFormatted = '0'
 
-    if (tokenData.address === nativeTokenAddress) {
+    if (isNativeToken(tokenData.address)) {
       balanceFormatted = parseFloat(formatUnits(nativeTokenBalance.value, tokenData.decimals)).toFixed(3)
     } else {
       if (!tokenBalance) return

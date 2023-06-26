@@ -30,6 +30,7 @@
     "@emotion/styled": "^11.11.0",
     "@rainbow-me/rainbowkit": "^1.0.3",
     "encoding": "^0.1.13",
+    "ethers": "^6.6.1",
     "framer-motion": "^10.12.17",
     "lodash": "^4.17.21",
     "lokijs": "^1.5.12",

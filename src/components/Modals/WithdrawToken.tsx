@@ -8,19 +8,21 @@ import { Modal, ModalBody, ModalCloseButton, ModalContent, ModalHeader, ModalOve
 import { Spinner } from '@chakra-ui/spinner'
 import { useChainModal } from '@rainbow-me/rainbowkit'
 import { useEffect, useState } from 'react'
-import { Abi, Address, formatUnits, parseUnits } from 'viem'
+import { Abi, Address, encodeFunctionData, formatUnits, parseUnits, zeroAddress } from 'viem'
 import { useAccount, useContractRead, useContractWrite, useNetwork } from 'wagmi'
 
 import { UnknownIcon } from '@/assets'
 import {
+  isNativeToken,
   l1MaticTokenAddress,
-  nativeTokenAddress,
   polygonZkEVMChainID,
   tokenWrapperABI,
   zkEVMABI,
   zkEVMAddress,
+  zkEVMBridgeABI,
   zkEVMBridgeAddress,
 } from '@/constants'
+import { useEthersSigner } from '@/hooks'
 import { IToken } from '@/store'
 
 export function WithdrawTokenModal({
@@ -48,20 +50,19 @@ export function WithdrawTokenModal({
     abi: tokenWrapperABI as Abi,
     address: withdrawToken.address as Address,
     args: [address as Address, zkEVMBridgeAddress],
-    enabled: withdrawToken.address !== nativeTokenAddress && chain?.id === polygonZkEVMChainID,
+    enabled: !isNativeToken(withdrawToken.address) && chain?.id === polygonZkEVMChainID,
     functionName: 'allowance',
     watch: true,
   })
 
   useEffect(() => {
-    if (bridgeAllowanceReadStatus === 'loading') return
+    if (bridgeAllowanceReadStatus !== 'success') return
 
-    const bridgeAllowance =
-      withdrawToken.address !== nativeTokenAddress
-        ? parseFloat(formatUnits(bridgeAllowanceData as bigint, withdrawToken.decimals))
-        : 0
+    const bridgeAllowance = !isNativeToken(withdrawToken.address)
+      ? parseFloat(formatUnits(bridgeAllowanceData as bigint, withdrawToken.decimals))
+      : 0
 
-    setBridgeAllowed(withdrawToken.address !== nativeTokenAddress ? bridgeAllowance >= value : true)
+    setBridgeAllowed(isNativeToken(withdrawToken.address) ? true : bridgeAllowance >= value)
   }, [bridgeAllowanceData, bridgeAllowanceReadStatus, value, withdrawToken.address, withdrawToken.decimals])
 
   const { data: forceBatchFeeData, status: forceBatchFeeStatus } = useContractRead({
@@ -93,7 +94,7 @@ export function WithdrawTokenModal({
   const [forceBatchAllowance, setForceBatchAllowance] = useState(false)
 
   useEffect(() => {
-    if (!forceBatchAllowanceData || !forceBatchFee || forceBatchAllowanceStatus === 'loading') return
+    if (!forceBatchAllowanceData || !forceBatchFee || forceBatchAllowanceStatus !== 'success') return
 
     const allowance = parseFloat(formatUnits(forceBatchAllowanceData as bigint, 18))
 
@@ -133,6 +134,56 @@ export function WithdrawTokenModal({
     submitApprovalBridge({ args: [zkEVMBridgeAddress as Address, amountParsed] })
   }
 
+  const signer = useEthersSigner({ chainId: polygonZkEVMChainID })
+
+  const [signedTransaction, setSignedTransaction] = useState<string | undefined>(undefined)
+
+  const handleSignTransaction = async (amount: number) => {
+    if (!signer) return
+
+    const isNative = isNativeToken(withdrawToken.address)
+
+    const amountParsed = parseUnits(amount.toString(), isNative ? 18 : withdrawToken.decimals)
+
+    const withdrawFunction = encodeFunctionData({
+      abi: zkEVMBridgeABI as Abi,
+      args: [0, address as Address, amountParsed, isNative ? zeroAddress : withdrawToken.address, true, ''],
+      functionName: 'bridgeAsset',
+    })
+
+    const nonce = await signer.getNonce()
+
+    const fee = await signer.provider.getFeeData()
+
+    const tx = {
+      data: withdrawFunction,
+      from: address,
+      gasLimit: 0,
+      gasPrice: fee.gasPrice,
+      maxFeePerGas: fee.maxFeePerGas,
+      maxPriorityFeePerGas: fee.maxPriorityFeePerGas,
+      nonce,
+      to: zkEVMAddress,
+      value: isNative ? amountParsed : 0,
+    }
+
+    const gasEstimate = await signer.estimateGas(tx)
+
+    const totalGas = parseInt(gasEstimate.toString())
+
+    tx.gasLimit = Math.floor(totalGas + totalGas * 0.1)
+
+    setSignedTransaction(JSON.stringify(tx))
+
+    if (openChainModal) {
+      openChainModal()
+    }
+  }
+
+  const handleWithdraw = async (signedTx: string | undefined) => {
+    console.log(signedTx)
+  }
+
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
       <ModalOverlay />
@@ -159,31 +210,33 @@ export function WithdrawTokenModal({
                   </Box>
 
                   <Text fontWeight="300">Select an amount to withdraw</Text>
-                  <InputGroup>
-                    <Input
-                      background="light-gray"
-                      borderColor="accent"
-                      focusBorderColor="accent"
-                      placeholder={balance}
-                      textAlign="center"
-                      type="number"
-                      value={value}
-                      width="300px"
-                      onChange={(e) => handleOnChange(e.target.value)}
-                    />
-                    <InputRightElement>
-                      <Button
-                        _hover={{ background: 'accent' }}
-                        background="accent"
-                        color="white"
-                        marginRight="2"
-                        size="xs"
-                        onClick={() => setValue(parseFloat(balance))}
-                      >
-                        Max
-                      </Button>
-                    </InputRightElement>
-                  </InputGroup>
+                  {!signedTransaction && (
+                    <InputGroup>
+                      <Input
+                        background="light-gray"
+                        borderColor="accent"
+                        focusBorderColor="accent"
+                        placeholder={balance}
+                        textAlign="center"
+                        type="number"
+                        value={value}
+                        width="300px"
+                        onChange={(e) => handleOnChange(e.target.value)}
+                      />
+                      <InputRightElement>
+                        <Button
+                          _hover={{ background: 'accent' }}
+                          background="accent"
+                          color="white"
+                          marginRight="2"
+                          size="xs"
+                          onClick={() => setValue(parseFloat(balance))}
+                        >
+                          Max
+                        </Button>
+                      </InputRightElement>
+                    </InputGroup>
+                  )}
 
                   {chain?.id === polygonZkEVMChainID && !bridgeAllowed && (
                     <Button
@@ -209,9 +262,13 @@ export function WithdrawTokenModal({
                       color="white"
                       isDisabled={value === 0}
                       size="md"
-                      onClick={openChainModal}
+                      onClick={() => handleSignTransaction(value)}
                     >
-                      Change to L1
+                      {statusApprovalBridge === 'loading' ? (
+                        <Spinner color="white" size="sm" />
+                      ) : (
+                        <Text>Sign Transaction</Text>
+                      )}
                     </Button>
                   )}
 
@@ -231,6 +288,7 @@ export function WithdrawTokenModal({
                       )}
                     </Button>
                   )}
+
                   {chain?.id !== polygonZkEVMChainID && forceBatchAllowance && (
                     <Button
                       _hover={{ background: 'accent' }}
@@ -238,7 +296,7 @@ export function WithdrawTokenModal({
                       color="white"
                       isDisabled={value === 0}
                       size="md"
-                      onClick={() => setValue(parseFloat(balance))}
+                      onClick={() => handleWithdraw(signedTransaction)}
                     >
                       Withdraw
                     </Button>
