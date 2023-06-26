@@ -54,7 +54,7 @@ export function WithdrawTokenModal({
   })
 
   useEffect(() => {
-    if (!bridgeAllowanceData || bridgeAllowanceReadStatus === 'loading') return
+    if (bridgeAllowanceReadStatus === 'loading') return
 
     const bridgeAllowance =
       withdrawToken.address !== nativeTokenAddress
