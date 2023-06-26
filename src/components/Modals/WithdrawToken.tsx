@@ -6,14 +6,14 @@ import { Input, InputGroup, InputRightElement } from '@chakra-ui/input'
 import { Box, Center, Heading, Text, VStack } from '@chakra-ui/layout'
 import { Modal, ModalBody, ModalCloseButton, ModalContent, ModalHeader, ModalOverlay } from '@chakra-ui/modal'
 import { Spinner } from '@chakra-ui/spinner'
-import { useChainModal } from '@rainbow-me/rainbowkit'
 import { useEffect, useState } from 'react'
 import { Abi, Address, encodeFunctionData, formatUnits, parseUnits, zeroAddress } from 'viem'
-import { useAccount, useContractRead, useContractWrite, useNetwork } from 'wagmi'
+import { useAccount, useContractRead, useContractWrite, useFeeData, useNetwork, useSwitchNetwork } from 'wagmi'
 
 import { UnknownIcon } from '@/assets'
 import {
   isNativeToken,
+  l1ChainID,
   l1MaticTokenAddress,
   polygonZkEVMChainID,
   tokenWrapperABI,
@@ -22,7 +22,6 @@ import {
   zkEVMBridgeABI,
   zkEVMBridgeAddress,
 } from '@/constants'
-import { useEthersSigner } from '@/hooks'
 import { IToken } from '@/store'
 
 export function WithdrawTokenModal({
@@ -40,8 +39,6 @@ export function WithdrawTokenModal({
 
   const { chain } = useNetwork()
 
-  const { openChainModal } = useChainModal()
-
   const [value, setValue] = useState(parseFloat(balance))
 
   const [bridgeAllowed, setBridgeAllowed] = useState(false)
@@ -56,13 +53,15 @@ export function WithdrawTokenModal({
   })
 
   useEffect(() => {
-    if (bridgeAllowanceReadStatus !== 'success') return
+    const isNative = isNativeToken(withdrawToken.address)
 
-    const bridgeAllowance = !isNativeToken(withdrawToken.address)
-      ? parseFloat(formatUnits(bridgeAllowanceData as bigint, withdrawToken.decimals))
-      : 0
+    if (!isNative && bridgeAllowanceReadStatus !== 'success') return
 
-    setBridgeAllowed(isNativeToken(withdrawToken.address) ? true : bridgeAllowance >= value)
+    const bridgeAllowance = isNative
+      ? 0
+      : parseFloat(formatUnits(bridgeAllowanceData as bigint, withdrawToken.decimals))
+
+    setBridgeAllowed(isNative ? true : bridgeAllowance >= value)
   }, [bridgeAllowanceData, bridgeAllowanceReadStatus, value, withdrawToken.address, withdrawToken.decimals])
 
   const { data: forceBatchFeeData, status: forceBatchFeeStatus } = useContractRead({
@@ -108,38 +107,40 @@ export function WithdrawTokenModal({
     setValue(parseFloat(amount))
   }
 
-  const { write: submitApprovalBridge, status: statusApprovalBridge } = useContractWrite({
+  const { writeAsync: submitApprovalBridge, status: statusApprovalBridge } = useContractWrite({
     abi: tokenWrapperABI,
     address: withdrawToken.address as Address,
     functionName: 'approve',
   })
 
-  const { write: submitApprovalBatch, status: statusApprovalBatch } = useContractWrite({
+  const { writeAsync: submitApprovalBatch, status: statusApprovalBatch } = useContractWrite({
     abi: tokenWrapperABI,
     address: l1MaticTokenAddress,
     functionName: 'approve',
   })
 
-  const handleApproveBatch = (amount: number | undefined) => {
+  const handleApproveBatch = async (amount: number | undefined) => {
     if (!amount) return
 
     const amountParsed = parseUnits(amount.toString(), 18)
 
-    submitApprovalBatch({ args: [zkEVMAddress as Address, amountParsed] })
+    await submitApprovalBatch({ args: [zkEVMAddress as Address, amountParsed] })
   }
 
-  const handleApproveBridge = (amount: number) => {
+  const handleApproveBridge = async (amount: number) => {
     const amountParsed = parseUnits(amount.toString(), withdrawToken.decimals)
 
-    submitApprovalBridge({ args: [zkEVMBridgeAddress as Address, amountParsed] })
+    await submitApprovalBridge({ args: [zkEVMBridgeAddress as Address, amountParsed] })
   }
-
-  const signer = useEthersSigner({ chainId: polygonZkEVMChainID })
 
   const [signedTransaction, setSignedTransaction] = useState<string | undefined>(undefined)
 
+  const { switchNetwork } = useSwitchNetwork()
+
+  const { data: feeData } = useFeeData()
+
   const handleSignTransaction = async (amount: number) => {
-    if (!signer) return
+    if (!feeData) return
 
     const isNative = isNativeToken(withdrawToken.address)
 
@@ -151,37 +152,42 @@ export function WithdrawTokenModal({
       functionName: 'bridgeAsset',
     })
 
-    const nonce = await signer.getNonce()
-
-    const fee = await signer.provider.getFeeData()
-
     const tx = {
       data: withdrawFunction,
       from: address,
       gasLimit: 0,
-      gasPrice: fee.gasPrice,
-      maxFeePerGas: fee.maxFeePerGas,
-      maxPriorityFeePerGas: fee.maxPriorityFeePerGas,
-      nonce,
+      gasPrice: feeData.gasPrice,
       to: zkEVMAddress,
       value: isNative ? amountParsed : 0,
     }
+    console.log(tx)
 
-    const gasEstimate = await signer.estimateGas(tx)
+    //tx.gasLimit = Math.floor(totalGas + totalGas * 0.1)
 
-    const totalGas = parseInt(gasEstimate.toString())
+    // TODO: find a way to add the nonce and the gasLimit
+    // TODO: find a way to sign a transaction.
 
-    tx.gasLimit = Math.floor(totalGas + totalGas * 0.1)
+    setSignedTransaction('')
 
-    setSignedTransaction(JSON.stringify(tx))
-
-    if (openChainModal) {
-      openChainModal()
+    if (switchNetwork) {
+      switchNetwork(l1ChainID)
     }
   }
 
-  const handleWithdraw = async (signedTx: string | undefined) => {
-    console.log(signedTx)
+  const { writeAsync: submitForceBatch, status: statusSubmitForceBatch } = useContractWrite({
+    abi: zkEVMABI,
+    address: zkEVMAddress,
+    functionName: 'forceBatch',
+  })
+
+  const handleWithdraw = async (signedTx: string | undefined, forceBatchFee: number | undefined) => {
+    if (!signedTx || !forceBatchFee) return
+
+    const fee = parseFloat(formatUnits(forceBatchFeeData as bigint, 18))
+
+    await submitForceBatch({ args: [signedTx, fee] })
+
+    onClose()
   }
 
   return (
@@ -296,9 +302,13 @@ export function WithdrawTokenModal({
                       color="white"
                       isDisabled={value === 0}
                       size="md"
-                      onClick={() => handleWithdraw(signedTransaction)}
+                      onClick={() => handleWithdraw(signedTransaction, forceBatchFee)}
                     >
-                      Withdraw
+                      {statusSubmitForceBatch === 'loading' ? (
+                        <Spinner color="white" size="sm" />
+                      ) : (
+                        <Text> Withdraw</Text>
+                      )}
                     </Button>
                   )}
                 </VStack>

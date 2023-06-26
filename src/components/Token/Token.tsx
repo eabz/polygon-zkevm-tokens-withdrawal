@@ -4,10 +4,9 @@ import { Avatar } from '@chakra-ui/avatar'
 import { Button } from '@chakra-ui/button'
 import { Box, HStack, Text, VStack } from '@chakra-ui/layout'
 import { Spinner } from '@chakra-ui/spinner'
-import { useChainModal } from '@rainbow-me/rainbowkit'
 import { useEffect, useState } from 'react'
 import { formatUnits } from 'viem'
-import { Address, useAccount, useBalance, useContractRead, useNetwork } from 'wagmi'
+import { Address, useAccount, useBalance, useContractRead, useNetwork, useSwitchNetwork } from 'wagmi'
 
 import { UnknownIcon } from '@/assets'
 import { isNativeToken, polygonZkEVMChainID, tokenWrapperABI } from '@/constants'
@@ -51,7 +50,13 @@ export function Token({
     setBalance(balanceFormatted)
   }, [balance, chain, nativeTokenBalance, tokenBalance, tokenData.address, tokenData.decimals])
 
-  const { openChainModal } = useChainModal()
+  const { switchNetwork } = useSwitchNetwork()
+
+  const handleL2NetworkChange = () => {
+    if (switchNetwork) {
+      switchNetwork(polygonZkEVMChainID)
+    }
+  }
 
   return (
     <HStack key={tokenData.address} justifyContent="space-between">
@@ -84,13 +89,11 @@ export function Token({
           </Button>
         </HStack>
       ) : (
-        openChainModal && (
-          <Button _hover={{ background: 'red' }} background="red" size="xs" onClick={() => openChainModal()}>
-            <Text color="white" cursor="pointer" fontSize="xs">
-              Change to L2 Network
-            </Text>
-          </Button>
-        )
+        <Button _hover={{ background: 'red' }} background="red" size="xs" onClick={handleL2NetworkChange}>
+          <Text color="white" cursor="pointer" fontSize="xs">
+            Change to L2 Network
+          </Text>
+        </Button>
       )}
     </HStack>
   )
