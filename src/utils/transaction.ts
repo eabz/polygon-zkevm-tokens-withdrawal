@@ -1,7 +1,10 @@
-import { Hex, toRlp, TransactionLegacy } from 'viem'
+import { Hex, parseTransaction, toRlp } from 'viem'
 
-export function rawTxToCustomRawTx(tx: TransactionLegacy) {
-  if (!tx.r || !tx.s || !tx.v || !tx.chainId || !tx.to) return
+export function rawTxToCustomRawTx(rawTx: string) {
+  const tx = parseTransaction(rawTx as Hex)
+
+  if (!tx.r || !tx.s || !tx.v || !tx.chainId || !tx.to || !tx.nonce || !tx.gasPrice || !tx.gas || !tx.value || !tx.data)
+    return
 
   const signData = toRlp([
     ('0x' + tx.nonce.toString(16)) as Hex,
@@ -9,7 +12,7 @@ export function rawTxToCustomRawTx(tx: TransactionLegacy) {
     ('0x' + tx.gas.toString(16)) as Hex,
     tx.to as Hex,
     ('0x' + tx.value.toString(16)) as Hex,
-    tx.input as Hex,
+    tx.data as Hex,
     ('0x' + tx.chainId.toString(16)) as Hex,
     '0x',
     '0x',

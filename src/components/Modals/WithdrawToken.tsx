@@ -7,7 +7,7 @@ import { Box, Center, Heading, Text, VStack } from '@chakra-ui/layout'
 import { Modal, ModalBody, ModalCloseButton, ModalContent, ModalHeader, ModalOverlay } from '@chakra-ui/modal'
 import { Spinner } from '@chakra-ui/spinner'
 import { useEffect, useState } from 'react'
-import { Abi, Address, encodeFunctionData, formatUnits, Hex, parseUnits, TransactionLegacy, zeroAddress } from 'viem'
+import { Abi, Address, encodeFunctionData, formatUnits, Hex, parseUnits, zeroAddress } from 'viem'
 import {
   useAccount,
   useContractRead,
@@ -24,6 +24,7 @@ import {
   isNativeToken,
   l1ChainID,
   l1MaticTokenAddress,
+  mockZkEVMChainID,
   polygonZkEVMChainID,
   tokenWrapperABI,
   zkEVMABI,
@@ -151,7 +152,7 @@ export function WithdrawTokenModal({
     }
   }
 
-  const { switchNetwork } = useSwitchNetwork()
+  const { switchNetworkAsync } = useSwitchNetwork()
 
   const { data: feeData } = useFeeData()
 
@@ -162,23 +163,23 @@ export function WithdrawTokenModal({
   const [transaction, setTransactionHash] = useState<Hex | undefined>(undefined)
 
   const { data: transactionData } = useTransaction({
-    enabled: chain?.id === polygonZkEVMChainID,
+    enabled: chain?.id === mockZkEVMChainID,
     hash: transaction,
   })
 
   useEffect(() => {
     if (!transactionData) return
-
-    const rawTx = rawTxToCustomRawTx(transactionData as TransactionLegacy)
+    console.log(transactionData)
+    const rawTx = rawTxToCustomRawTx(transactionData as any)
 
     setSignedTransaction(rawTx)
 
     setTransactionLoading(false)
 
-    if (switchNetwork) {
-      switchNetwork(l1ChainID)
+    if (switchNetworkAsync) {
+      switchNetworkAsync(l1ChainID)
     }
-  }, [switchNetwork, transactionData])
+  }, [switchNetworkAsync, transactionData])
 
   const [transactionLoading, setTransactionLoading] = useState(false)
 
@@ -188,6 +189,10 @@ export function WithdrawTokenModal({
     const isNative = isNativeToken(withdrawToken.address)
 
     const amountParsed = parseUnits(amount.toString(), isNative ? 18 : withdrawToken.decimals)
+
+    if (switchNetworkAsync) {
+      await switchNetworkAsync(mockZkEVMChainID)
+    }
 
     const withdrawFunction = encodeFunctionData({
       abi: zkEVMBridgeABI as Abi,

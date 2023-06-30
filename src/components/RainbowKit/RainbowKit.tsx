@@ -16,10 +16,11 @@ import { goerli, polygonZkEvmTestnet } from 'viem/chains'
 import { configureChains, createConfig, WagmiConfig } from 'wagmi'
 import { publicProvider } from 'wagmi/providers/public'
 
+import { mockNetwork } from '@/constants/mock-network'
 import { walletTheme } from '@/theme'
 
 export function RainbowKit({ children }: { children: ReactNode }) {
-  const { chains, publicClient } = configureChains([goerli, polygonZkEvmTestnet], [publicProvider()])
+  const { chains, publicClient } = configureChains([goerli, polygonZkEvmTestnet, mockNetwork], [publicProvider()])
 
   const connectors = useMemo(() => {
     const projectId = '9e3063f0bb1e16224c8cca4d4b4cb0ac'
