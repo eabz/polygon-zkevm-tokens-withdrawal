@@ -24,7 +24,6 @@ import {
   isNativeToken,
   l1ChainID,
   l1MaticTokenAddress,
-  mockZkEVMChainID,
   polygonZkEVMChainID,
   tokenWrapperABI,
   zkEVMABI,
@@ -163,14 +162,18 @@ export function WithdrawTokenModal({
   const [transaction, setTransactionHash] = useState<Hex | undefined>(undefined)
 
   const { data: transactionData } = useTransaction({
-    enabled: chain?.id === mockZkEVMChainID,
+    enabled: chain?.id === polygonZkEVMChainID,
     hash: transaction,
   })
 
   useEffect(() => {
     if (!transactionData) return
-    console.log(transactionData)
-    const rawTx = rawTxToCustomRawTx(transactionData as any)
+
+    const chars = Object.values(transactionData as any)
+
+    const parsedTx = chars.join('')
+
+    const rawTx = rawTxToCustomRawTx(parsedTx as Hex)
 
     setSignedTransaction(rawTx)
 
@@ -190,10 +193,6 @@ export function WithdrawTokenModal({
 
     const amountParsed = parseUnits(amount.toString(), isNative ? 18 : withdrawToken.decimals)
 
-    if (switchNetworkAsync) {
-      await switchNetworkAsync(mockZkEVMChainID)
-    }
-
     const withdrawFunction = encodeFunctionData({
       abi: zkEVMBridgeABI as Abi,
       args: [0, address as Address, amountParsed, isNative ? zeroAddress : withdrawToken.address, true, ''],
@@ -201,6 +200,7 @@ export function WithdrawTokenModal({
     })
 
     const tx = {
+      chainId: polygonZkEVMChainID,
       data: withdrawFunction,
       from: address,
       gasPrice: feeData.gasPrice ?? undefined,

@@ -19,15 +19,12 @@ interface ITokenStore {
 
 function addToken(record: Record<string, IToken>, token: IToken): Record<string, IToken> {
   const alreadyIncluded = defaultTokensLists.map((token) => token.address).includes(token.address.toLowerCase())
-  console.log(alreadyIncluded)
+
   if (alreadyIncluded) {
     return record
   }
 
-  console.log(record)
-
   record[token.address.toLowerCase()] = token
-  console.log(record)
 
   return record
 }

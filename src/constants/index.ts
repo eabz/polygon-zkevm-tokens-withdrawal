@@ -6,7 +6,6 @@ export * from './abis'
 export * from './tokens'
 
 export const polygonZkEVMChainID = 0x5a2
-export const mockZkEVMChainID = 0x5a3
 
 export const l1ChainID = 0x5
 
