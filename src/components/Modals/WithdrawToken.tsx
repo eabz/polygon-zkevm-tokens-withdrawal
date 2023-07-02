@@ -170,7 +170,7 @@ export function WithdrawTokenModal({
         owner: address,
         spender: zkEVMBridgeAddress,
         tokenAddress: withdrawToken.address,
-        value: value.toString(),
+        value: amountParsed.toString(),
       })
     }
 
