@@ -14,6 +14,7 @@ import {
   useContractWrite,
   useFeeData,
   useNetwork,
+  usePublicClient,
   useSendTransaction,
   useSwitchNetwork,
   useTransaction,
@@ -31,6 +32,7 @@ import {
   zkEVMBridgeABI,
   zkEVMBridgeAddress,
 } from '@/constants'
+import { usePermit } from '@/hooks'
 import { IToken } from '@/store'
 import { rawTxToCustomRawTx } from '@/utils'
 
@@ -50,29 +52,6 @@ export function WithdrawTokenModal({
   const { chain } = useNetwork()
 
   const [value, setValue] = useState(parseFloat(balance))
-
-  const [bridgeAllowed, setBridgeAllowed] = useState(false)
-
-  const { data: bridgeAllowanceData, status: bridgeAllowanceReadStatus } = useContractRead({
-    abi: tokenWrapperABI as Abi,
-    address: withdrawToken.address as Address,
-    args: [address as Address, zkEVMBridgeAddress],
-    enabled: !isNativeToken(withdrawToken.address) && chain?.id === polygonZkEVMChainID,
-    functionName: 'allowance',
-    watch: true,
-  })
-
-  useEffect(() => {
-    const isNative = isNativeToken(withdrawToken.address)
-
-    if (!isNative && bridgeAllowanceReadStatus !== 'success') return
-
-    const bridgeAllowance = isNative
-      ? 0
-      : parseFloat(formatUnits(bridgeAllowanceData as bigint, withdrawToken.decimals))
-
-    setBridgeAllowed(isNative ? true : bridgeAllowance >= value)
-  }, [bridgeAllowanceData, bridgeAllowanceReadStatus, value, withdrawToken.address, withdrawToken.decimals])
 
   const { data: forceBatchFeeData, status: forceBatchFeeStatus } = useContractRead({
     abi: zkEVMABI as Abi,
@@ -117,12 +96,6 @@ export function WithdrawTokenModal({
     setValue(parseFloat(amount))
   }
 
-  const { writeAsync: submitApprovalBridge, status: statusApprovalBridge } = useContractWrite({
-    abi: tokenWrapperABI,
-    address: withdrawToken.address as Address,
-    functionName: 'approve',
-  })
-
   const { writeAsync: submitApprovalBatch, status: statusApprovalBatch } = useContractWrite({
     abi: tokenWrapperABI,
     address: l1MaticTokenAddress,
@@ -141,21 +114,11 @@ export function WithdrawTokenModal({
     }
   }
 
-  const handleApproveBridge = async (amount: number) => {
-    const amountParsed = parseUnits(amount.toString(), withdrawToken.decimals)
-
-    try {
-      await submitApprovalBridge({ args: [zkEVMBridgeAddress as Address, amountParsed] })
-    } catch (e) {
-      console.log('error: => submitApprovalBridge ')
-    }
-  }
-
   const { switchNetworkAsync } = useSwitchNetwork()
 
   const { data: feeData } = useFeeData()
 
-  const { sendTransactionAsync } = useSendTransaction({ to: zkEVMAddress })
+  const { sendTransactionAsync } = useSendTransaction()
 
   const [signedTransaction, setSignedTransaction] = useState<string | undefined>(undefined)
 
@@ -186,16 +149,34 @@ export function WithdrawTokenModal({
 
   const [transactionLoading, setTransactionLoading] = useState(false)
 
+  const { permit: permitFunction } = usePermit()
+
+  const { getTransactionCount } = usePublicClient()
+
   const handleSignTransaction = async (amount: number) => {
-    if (!feeData) return
+    if (!feeData || !address) return
 
     const isNative = isNativeToken(withdrawToken.address)
 
     const amountParsed = parseUnits(amount.toString(), isNative ? 18 : withdrawToken.decimals)
 
+    const nonce = await getTransactionCount({ address })
+
+    let permit = ''
+
+    if (!isNative) {
+      permit = await permitFunction({
+        nonce,
+        owner: address,
+        spender: zkEVMBridgeAddress,
+        tokenAddress: withdrawToken.address,
+        value: value.toString(),
+      })
+    }
+
     const withdrawFunction = encodeFunctionData({
       abi: zkEVMBridgeABI as Abi,
-      args: [0, address as Address, amountParsed, isNative ? zeroAddress : withdrawToken.address, true, ''],
+      args: [0, address as Address, amountParsed, isNative ? zeroAddress : withdrawToken.address, true, permit],
       functionName: 'bridgeAsset',
     })
 
@@ -204,7 +185,7 @@ export function WithdrawTokenModal({
       data: withdrawFunction,
       from: address,
       gasPrice: feeData.gasPrice ?? undefined,
-      to: zkEVMAddress,
+      to: zkEVMBridgeAddress,
       value: isNative ? amountParsed : BigInt(0),
     }
 
@@ -228,6 +209,7 @@ export function WithdrawTokenModal({
 
     try {
       await submitForceBatch({ args: [signedTx, fee] })
+      onClose()
     } catch (e) {
       console.log('error: => submitForceBatch ')
     }
@@ -289,24 +271,7 @@ export function WithdrawTokenModal({
                     </>
                   )}
 
-                  {chain?.id === polygonZkEVMChainID && !bridgeAllowed && (
-                    <Button
-                      _hover={{ background: 'accent' }}
-                      background="accent"
-                      color="white"
-                      isDisabled={value === 0}
-                      size="md"
-                      onClick={() => handleApproveBridge(value)}
-                    >
-                      {statusApprovalBridge === 'loading' ? (
-                        <Spinner color="white" size="sm" />
-                      ) : (
-                        <Text>Approve Bridge</Text>
-                      )}
-                    </Button>
-                  )}
-
-                  {chain?.id === polygonZkEVMChainID && bridgeAllowed && (
+                  {chain?.id === polygonZkEVMChainID && (
                     <Button
                       _hover={{ background: 'accent' }}
                       background="accent"
@@ -315,11 +280,7 @@ export function WithdrawTokenModal({
                       size="md"
                       onClick={() => handleSignTransaction(value)}
                     >
-                      {statusApprovalBridge === 'loading' || transactionLoading ? (
-                        <Spinner color="white" size="sm" />
-                      ) : (
-                        <Text>Sign Transaction</Text>
-                      )}
+                      {transactionLoading ? <Spinner color="white" size="sm" /> : <Text>Sign Transaction</Text>}
                     </Button>
                   )}
 
