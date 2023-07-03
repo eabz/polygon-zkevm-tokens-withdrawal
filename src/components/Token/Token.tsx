@@ -9,8 +9,8 @@ import { formatUnits } from 'viem'
 import { Address, useAccount, useBalance, useContractRead, useNetwork, useSwitchNetwork } from 'wagmi'
 
 import { UnknownIcon } from '@/assets'
-import { isNativeToken, polygonZkEVMChainID, tokenWrapperABI } from '@/constants'
-import { IToken } from '@/store'
+import { isNativeToken, tokenWrapperABI } from '@/constants'
+import { IToken, useZkEVMNetwork } from '@/store'
 
 export function Token({
   tokenData,
@@ -20,6 +20,8 @@ export function Token({
   openWithdraw: (token: IToken, balance: string) => void
 }) {
   const { address } = useAccount()
+
+  const { chainID } = useZkEVMNetwork()
 
   const { data: nativeTokenBalance, isLoading: nativeTokenBalanceLoading } = useBalance({ address })
 
@@ -31,12 +33,12 @@ export function Token({
     abi: tokenWrapperABI,
     address: tokenData.address as Address,
     args: [address as Address],
-    enabled: address && !isNativeToken(tokenData.address) && chain && chain.id === polygonZkEVMChainID,
+    enabled: address && !isNativeToken(tokenData.address) && chain && chain.id === chainID,
     functionName: 'balanceOf',
   })
 
   useEffect(() => {
-    if (!chain || chain.id !== polygonZkEVMChainID || !nativeTokenBalance) return
+    if (!chain || chain.id !== chainID || !nativeTokenBalance) return
 
     let balanceFormatted = '0'
 
@@ -48,13 +50,13 @@ export function Token({
     }
 
     setBalance(balanceFormatted)
-  }, [balance, chain, nativeTokenBalance, tokenBalance, tokenData.address, tokenData.decimals])
+  }, [balance, chain, chainID, nativeTokenBalance, tokenBalance, tokenData.address, tokenData.decimals])
 
   const { switchNetwork } = useSwitchNetwork()
 
   const handleL2NetworkChange = () => {
     if (switchNetwork) {
-      switchNetwork(polygonZkEVMChainID)
+      switchNetwork(chainID)
     }
   }
 
@@ -73,7 +75,7 @@ export function Token({
           </VStack>
         </Box>
       </HStack>
-      {chain?.id === polygonZkEVMChainID ? (
+      {chain?.id === chainID ? (
         <HStack>
           <Box>
             {tokenBalanceLoading || nativeTokenBalanceLoading ? <Spinner color="gray" /> : <Text>{balance}</Text>}

@@ -21,19 +21,9 @@ import {
 } from 'wagmi'
 
 import { UnknownIcon } from '@/assets'
-import {
-  isNativeToken,
-  l1ChainID,
-  l1MaticTokenAddress,
-  polygonZkEVMChainID,
-  tokenWrapperABI,
-  zkEVMABI,
-  zkEVMAddress,
-  zkEVMBridgeABI,
-  zkEVMBridgeAddress,
-} from '@/constants'
+import { isNativeToken, tokenWrapperABI, zkEVMABI, zkEVMBridgeABI } from '@/constants'
 import { usePermit } from '@/hooks'
-import { IToken } from '@/store'
+import { IToken, useZkEVMNetwork } from '@/store'
 import { rawTxToCustomRawTx } from '@/utils'
 
 export function WithdrawTokenModal({
@@ -53,10 +43,12 @@ export function WithdrawTokenModal({
 
   const [value, setValue] = useState(parseFloat(balance))
 
+  const { zkEVMAddress, chainID, l1MaticTokenAddress, l1ChainID, bridgeAddress } = useZkEVMNetwork()
+
   const { data: forceBatchFeeData, status: forceBatchFeeStatus } = useContractRead({
     abi: zkEVMABI as Abi,
     address: zkEVMAddress,
-    enabled: chain?.id !== polygonZkEVMChainID,
+    enabled: chain?.id !== chainID,
     functionName: 'getForcedBatchFee',
   })
 
@@ -74,7 +66,7 @@ export function WithdrawTokenModal({
     abi: tokenWrapperABI as Abi,
     address: l1MaticTokenAddress,
     args: [address as Address, zkEVMAddress],
-    enabled: chain?.id !== polygonZkEVMChainID,
+    enabled: chain?.id !== chainID,
     functionName: 'allowance',
     watch: true,
   })
@@ -125,7 +117,7 @@ export function WithdrawTokenModal({
   const [transaction, setTransactionHash] = useState<Hex | undefined>(undefined)
 
   const { data: transactionData } = useTransaction({
-    enabled: chain?.id === polygonZkEVMChainID,
+    enabled: chain?.id === chainID,
     hash: transaction,
   })
 
@@ -145,7 +137,7 @@ export function WithdrawTokenModal({
     if (switchNetworkAsync) {
       switchNetworkAsync(l1ChainID)
     }
-  }, [switchNetworkAsync, transactionData])
+  }, [l1ChainID, switchNetworkAsync, transactionData])
 
   const [transactionLoading, setTransactionLoading] = useState(false)
 
@@ -168,7 +160,7 @@ export function WithdrawTokenModal({
       permit = await permitFunction({
         nonce,
         owner: address,
-        spender: zkEVMBridgeAddress,
+        spender: bridgeAddress,
         tokenAddress: withdrawToken.address,
         value: amountParsed.toString(),
       })
@@ -181,11 +173,11 @@ export function WithdrawTokenModal({
     })
 
     const tx = {
-      chainId: polygonZkEVMChainID,
+      chainId: chainID,
       data: withdrawFunction,
       from: address,
       gasPrice: feeData.gasPrice ?? undefined,
-      to: zkEVMBridgeAddress,
+      to: bridgeAddress,
       value: isNative ? amountParsed : BigInt(0),
     }
 
@@ -271,7 +263,7 @@ export function WithdrawTokenModal({
                     </>
                   )}
 
-                  {chain?.id === polygonZkEVMChainID && (
+                  {chain?.id === chainID && (
                     <Button
                       _hover={{ background: 'accent' }}
                       background="accent"
@@ -284,7 +276,7 @@ export function WithdrawTokenModal({
                     </Button>
                   )}
 
-                  {chain?.id !== polygonZkEVMChainID && !forceBatchAllowance && (
+                  {chain?.id !== chainID && !forceBatchAllowance && (
                     <Button
                       _hover={{ background: 'accent' }}
                       background="accent"
@@ -301,7 +293,7 @@ export function WithdrawTokenModal({
                     </Button>
                   )}
 
-                  {chain?.id !== polygonZkEVMChainID && forceBatchAllowance && (
+                  {chain?.id !== chainID && forceBatchAllowance && (
                     <Button
                       _hover={{ background: 'accent' }}
                       background="accent"

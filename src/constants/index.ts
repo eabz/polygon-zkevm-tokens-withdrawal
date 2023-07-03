@@ -1,5 +1,7 @@
 'use client'
 
+import { Address } from 'viem'
+
 export * from './abis'
 export * from './mock-network'
 export * from './tokens'
@@ -44,16 +46,16 @@ export const getL1ChainID = (chain: Chain): number => {
   return l1ChainID[chain]
 }
 
-export const getZkEVMAddress = (chain: Chain): string => {
-  return zkEVMAddress[chain]
+export const getZkEVMAddress = (chain: Chain): Address => {
+  return zkEVMAddress[chain] as Address
 }
 
-export const getBridgeAddress = (chain: Chain): string => {
-  return bridgeAddress[chain]
+export const getBridgeAddress = (chain: Chain): Address => {
+  return bridgeAddress[chain] as Address
 }
 
-export const getL1MaticTokenAddress = (chain: Chain): string => {
-  return l1MaticTokenAddress[chain]
+export const getL1MaticTokenAddress = (chain: Chain): Address => {
+  return l1MaticTokenAddress[chain] as Address
 }
 
 export function isNativeToken(token: string) {

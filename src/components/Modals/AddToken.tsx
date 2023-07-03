@@ -11,11 +11,13 @@ import { Abi, Address, isAddress } from 'viem'
 import { useAccount, useContractReads, useNetwork } from 'wagmi'
 
 import { UnknownIcon } from '@/assets'
-import { polygonZkEVMChainID, tokenWrapperABI } from '@/constants'
-import { IToken, useTokenStore } from '@/store'
+import { tokenWrapperABI } from '@/constants'
+import { IToken, useTokenStore, useZkEVMNetwork } from '@/store'
 
 export function AddTokenModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const { isConnected } = useAccount()
+
+  const { chainID } = useZkEVMNetwork()
 
   const { chain } = useNetwork()
 
@@ -63,7 +65,7 @@ export function AddTokenModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
         functionName: 'bridgeAddress',
       },
     ],
-    enabled: newToken !== undefined && isConnected && chain?.id === polygonZkEVMChainID,
+    enabled: newToken !== undefined && isConnected && chain?.id === chainID,
   })
 
   useEffect(() => {

@@ -11,9 +11,9 @@ import { useAccount, useNetwork } from 'wagmi'
 
 import { AddIcon } from '@/assets'
 import { AddTokenModal, Token, WithdrawTokenModal } from '@/components'
-import { defaultTokensLists, polygonZkEVMChainID } from '@/constants'
+import { defaultTokensLists } from '@/constants'
 import { useIsMounted } from '@/hooks'
-import { IToken, useTokenStore } from '@/store'
+import { IToken, useTokenStore, useZkEVMNetwork } from '@/store'
 
 const getTokensList = (tokens: Record<string, IToken>): IToken[] => {
   const tokensList: IToken[] = []
@@ -31,7 +31,10 @@ const getTokensList = (tokens: Record<string, IToken>): IToken[] => {
 
 export function TokensList() {
   const { isOpen: isOpenAddToken, onClose: onCloseAddToken, onOpen: onOpenAddToken } = useDisclosure()
+
   const { isOpen: isOpenWithdrawToken, onClose: onCloseWithdrawToken, onOpen: onOpenWithdrawToken } = useDisclosure()
+
+  const { chainID } = useZkEVMNetwork()
 
   const { tokens } = useTokenStore()
 
@@ -77,7 +80,7 @@ export function TokensList() {
         <CardHeader background="white" borderBottom="2px" borderBottomColor="light-gray" height="70px" roundedTop="2xl">
           <HStack justifyContent="space-between">
             <Heading size="md">Wallet Tokens</Heading>
-            {isConnected && chain?.id === polygonZkEVMChainID && (
+            {isConnected && chain?.id === chainID && (
               <IconButton
                 aria-label="Add new token icon button"
                 icon={<AddIcon boxSize={4} />}
