@@ -1,19 +1,60 @@
 'use client'
 
-import { nativeTokenAddress } from './tokens'
-
 export * from './abis'
+export * from './mock-network'
 export * from './tokens'
 
-export const polygonZkEVMChainID = 0x5a2
+export const nativeTokenAddress = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee'
 
-export const l1ChainID = 0x5
+export enum Chain {
+  TESTNET,
+  MAINNET,
+}
 
-export const zkEVMAddress = '0xa997cfD539E703921fD1e3Cf25b4c241a27a4c7A'
+const chainID = {
+  [Chain.TESTNET]: 0x5a2,
+  [Chain.MAINNET]: 0x44d,
+}
 
-export const zkEVMBridgeAddress = '0xF6BEEeBB578e214CA9E23B0e9683454Ff88Ed2A7'
+const l1ChainID = {
+  [Chain.TESTNET]: 0x5,
+  [Chain.MAINNET]: 0x1,
+}
 
-export const l1MaticTokenAddress = '0x1319D23c2F7034F52Eb07399702B040bA278Ca49'
+const zkEVMAddress = {
+  [Chain.TESTNET]: '0xa997cfD539E703921fD1e3Cf25b4c241a27a4c7A',
+  [Chain.MAINNET]: '',
+}
+
+const bridgeAddress = {
+  [Chain.TESTNET]: '0xF6BEEeBB578e214CA9E23B0e9683454Ff88Ed2A7',
+  [Chain.MAINNET]: '',
+}
+
+const l1MaticTokenAddress = {
+  [Chain.TESTNET]: '0x1319D23c2F7034F52Eb07399702B040bA278Ca49',
+  [Chain.MAINNET]: '0x7d1afa7b718fb893db30a3abc0cfc608aacfebb0',
+}
+
+export const getChainID = (chain: Chain): number => {
+  return chainID[chain]
+}
+
+export const getL1ChainID = (chain: Chain): number => {
+  return l1ChainID[chain]
+}
+
+export const getZkEVMAddress = (chain: Chain): string => {
+  return zkEVMAddress[chain]
+}
+
+export const getBridgeAddress = (chain: Chain): string => {
+  return bridgeAddress[chain]
+}
+
+export const getL1MaticTokenAddress = (chain: Chain): string => {
+  return l1MaticTokenAddress[chain]
+}
 
 export function isNativeToken(token: string) {
   return token === nativeTokenAddress

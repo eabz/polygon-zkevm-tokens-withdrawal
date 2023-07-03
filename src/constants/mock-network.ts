@@ -1,13 +1,7 @@
 'use client'
 
-import { polygonZkEVMChainID } from '.'
-
-export const nativeTokenAddress = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee'
-
-const mockRPC = 'https://mock-rpc.kindynos.workers.dev'
-
-export const mockNetwork = {
-  id: polygonZkEVMChainID,
+export const testNetwork = {
+  id: 0x5a2,
   name: 'Polygon ZkEVM Testnet',
   nativeCurrency: {
     decimals: 18,
@@ -17,10 +11,29 @@ export const mockNetwork = {
   network: 'polygon-zkevm-testnet',
   rpcUrls: {
     default: {
-      http: [mockRPC],
+      http: ['https://zkevm-testnet.kindynos.mx'],
     },
     public: {
-      http: [mockRPC],
+      http: ['https://zkevm-testnet.kindynos.mx'],
+    },
+  },
+}
+
+export const mainNetwork = {
+  id: 0x44d,
+  name: 'Polygon ZkEVM',
+  nativeCurrency: {
+    decimals: 18,
+    name: 'Ethereum',
+    symbol: 'ETH',
+  },
+  network: 'polygon-zkevm',
+  rpcUrls: {
+    default: {
+      http: ['https://zkevm.kindynos.mx/'],
+    },
+    public: {
+      http: ['https://zkevm.kindynos.mx/'],
     },
   },
 }
