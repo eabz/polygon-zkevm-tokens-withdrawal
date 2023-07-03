@@ -15,7 +15,7 @@ import { defaultTokensLists } from '@/constants'
 import { useIsMounted } from '@/hooks'
 import { IToken, useTokenStore, useZkEVMNetwork } from '@/store'
 
-const getTokensList = (tokens: Record<string, IToken>): IToken[] => {
+const getTokensList = (tokens: Record<string, IToken>, chainID: number): IToken[] => {
   const tokensList: IToken[] = []
 
   for (const token of Object.values(tokens)) {
@@ -26,7 +26,7 @@ const getTokensList = (tokens: Record<string, IToken>): IToken[] => {
     tokensList.push(token)
   }
 
-  return tokensList
+  return tokensList.filter((token) => token.chainID === chainID)
 }
 
 export function TokensList() {
@@ -47,7 +47,7 @@ export function TokensList() {
   const isMounted = useIsMounted()
   if (!isMounted) return null
 
-  const tokensList: IToken[] = getTokensList(tokens)
+  const tokensList: IToken[] = getTokensList(tokens, chainID)
 
   const handleOpenWithdraw = (token: IToken, balance: string) => {
     setWithdrawToken({ balance, token })

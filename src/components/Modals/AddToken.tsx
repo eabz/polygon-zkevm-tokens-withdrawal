@@ -82,13 +82,14 @@ export function AddTokenModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
 
     const token: IToken = {
       address: newToken,
+      chainID,
       decimals: data[1].result as number,
       name: data[0].result as string,
       symbol: data[2].result as string,
     }
 
     setNewTokenData(token)
-  }, [data, newToken])
+  }, [chainID, data, newToken])
 
   const { addToken } = useTokenStore()
 

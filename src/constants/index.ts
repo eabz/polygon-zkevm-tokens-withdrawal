@@ -30,7 +30,7 @@ const zkEVMAddress = {
 
 const bridgeAddress = {
   [Chain.TESTNET]: '0xF6BEEeBB578e214CA9E23B0e9683454Ff88Ed2A7',
-  [Chain.MAINNET]: '',
+  [Chain.MAINNET]: '0x2a3dd3eb832af982ec71669e178424b10dca2ede',
 }
 
 const l1MaticTokenAddress = {

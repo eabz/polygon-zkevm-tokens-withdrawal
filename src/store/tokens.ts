@@ -9,6 +9,7 @@ export interface IToken {
   symbol: string
   decimals: number
   logoURI?: string
+  chainID: number
 }
 
 interface ITokenStore {
