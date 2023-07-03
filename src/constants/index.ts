@@ -25,7 +25,7 @@ const l1ChainID = {
 
 const zkEVMAddress = {
   [Chain.TESTNET]: '0xa997cfD539E703921fD1e3Cf25b4c241a27a4c7A',
-  [Chain.MAINNET]: '',
+  [Chain.MAINNET]: '0x5132A183E9F3CB7C848b0AAC5Ae0c4f0491B7aB2',
 }
 
 const bridgeAddress = {
