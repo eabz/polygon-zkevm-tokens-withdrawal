@@ -2,7 +2,7 @@
 
 export const testNetwork = {
   id: 0x5a2,
-  name: 'Polygon ZkEVM Testnet',
+  name: 'Forced Batch zkEVM Testnet',
   nativeCurrency: {
     decimals: 18,
     name: 'Ethereum',
@@ -21,7 +21,7 @@ export const testNetwork = {
 
 export const mainNetwork = {
   id: 0x44d,
-  name: 'Polygon ZkEVM',
+  name: 'Forced Batch zkEVM Mainnet',
   nativeCurrency: {
     decimals: 18,
     name: 'Ethereum',
