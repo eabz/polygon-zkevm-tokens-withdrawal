@@ -23,7 +23,7 @@ export const useZkEVMNetwork = create<IChainStore>()((set) => ({
       chainID: getChainID(network),
       l1ChainID: getL1ChainID(network),
       l1MaticTokenAddress: getL1MaticTokenAddress(network),
-      zkEVMAddress: getBridgeAddress(network),
+      zkEVMAddress: getZkEVMAddress(network),
     })),
   zkEVMAddress: getZkEVMAddress(Chain.MAINNET),
 }))
