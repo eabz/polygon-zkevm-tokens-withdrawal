@@ -154,7 +154,7 @@ export function WithdrawTokenModal({
 
     const nonce = await getTransactionCount({ address })
 
-    let permit = ''
+    let permit
 
     if (!isNative) {
       permit = await permitFunction({
@@ -166,25 +166,31 @@ export function WithdrawTokenModal({
       })
     }
 
-    const withdrawFunction = encodeFunctionData({
-      abi: zkEVMBridgeABI as Abi,
-      args: [0, address as Address, amountParsed, isNative ? zeroAddress : withdrawToken.address, true, permit],
-      functionName: 'bridgeAsset',
-    })
+    if (permit) {
+      const withdrawFunction = encodeFunctionData({
+        abi: zkEVMBridgeABI as Abi,
+        args: [0, address as Address, amountParsed, isNative ? zeroAddress : withdrawToken.address, true, permit],
+        functionName: 'bridgeAsset',
+      })
 
-    const tx = {
-      chainId: chainID,
-      data: withdrawFunction,
-      from: address,
-      gasPrice: feeData.gasPrice ?? undefined,
-      to: bridgeAddress,
-      value: isNative ? amountParsed : BigInt(0),
-    }
+      const tx = {
+        chainId: chainID,
+        data: withdrawFunction,
+        from: address,
+        gasPrice: feeData.gasPrice ?? undefined,
+        to: bridgeAddress,
+        value: isNative ? amountParsed : BigInt(0),
+      }
 
-    if (sendTransactionAsync) {
-      const transaction = await sendTransactionAsync(tx)
-      setTransactionLoading(true)
-      setTransactionHash(transaction.hash)
+      if (sendTransactionAsync) {
+        try {
+          const transaction = await sendTransactionAsync(tx)
+          setTransactionLoading(true)
+          setTransactionHash(transaction.hash)
+        } catch (e) {
+          console.error(e)
+        }
+      }
     }
   }
 

@@ -36,7 +36,7 @@ const permitTypes: any = {
   ],
 }
 
-export const usePermit = (): { permit: (data: IPermit) => Promise<string> } => {
+export const usePermit = (): { permit: (data: IPermit) => Promise<string | undefined> } => {
   const { chain } = useNetwork()
 
   const signatureMessage: any = ({
@@ -72,9 +72,12 @@ export const usePermit = (): { permit: (data: IPermit) => Promise<string> } => {
 
       const message = signatureMessage({ nonce, owner, spender, value })
 
-      const permit = await signTypedDataAsync({ domain, message, primaryType, types: permitTypes })
-
-      return permit
+      try {
+        const permit = await signTypedDataAsync({ domain, message, primaryType, types: permitTypes })
+        return permit
+      } catch (e) {
+        console.log('error: => signTypedData ')
+      }
     },
     [chain?.id, signTypedDataAsync],
   )
