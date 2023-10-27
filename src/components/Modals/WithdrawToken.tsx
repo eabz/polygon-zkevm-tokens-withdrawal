@@ -166,30 +166,35 @@ export function WithdrawTokenModal({
       })
     }
 
-    if (permit) {
-      const withdrawFunction = encodeFunctionData({
+    const tx = {
+      chainId: chainID,
+      data: encodeFunctionData({
         abi: zkEVMBridgeABI as Abi,
-        args: [0, address as Address, amountParsed, isNative ? zeroAddress : withdrawToken.address, true, permit],
+        args: [
+          0,
+          address as Address,
+          amountParsed,
+          isNative ? zeroAddress : withdrawToken.address,
+          true,
+          isNative ? '0x0' : permit,
+        ],
         functionName: 'bridgeAsset',
-      })
+      }),
+      from: address,
+      gasPrice: feeData.gasPrice ?? undefined,
+      to: bridgeAddress,
+      value: isNative ? amountParsed : BigInt(0),
+    }
 
-      const tx = {
-        chainId: chainID,
-        data: withdrawFunction,
-        from: address,
-        gasPrice: feeData.gasPrice ?? undefined,
-        to: bridgeAddress,
-        value: isNative ? amountParsed : BigInt(0),
-      }
+    if (sendTransactionAsync) {
+      try {
+        const transaction = await sendTransactionAsync(tx)
 
-      if (sendTransactionAsync) {
-        try {
-          const transaction = await sendTransactionAsync(tx)
-          setTransactionLoading(true)
-          setTransactionHash(transaction.hash)
-        } catch (e) {
-          console.error(e)
-        }
+        setTransactionLoading(true)
+
+        setTransactionHash(transaction.hash)
+      } catch (e) {
+        console.error(e)
       }
     }
   }

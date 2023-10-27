@@ -1,9 +1,6 @@
 const plugins = []
 
 const config = {
-  experimental: {
-    appDir: true,
-  },
   images: {
     remotePatterns: [
       {

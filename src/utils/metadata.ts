@@ -2,7 +2,7 @@ import { Metadata } from 'next'
 
 const description = 'Polygon zkEVM dapp to track token balances and use the force withdrawal'
 
-const url = 'http://localhost:3000/'
+const url = 'https://forced-batches.kindynos.mx/'
 
 const title = 'Polygon ZkEVM Tokens Withdrawals'
 
@@ -21,7 +21,7 @@ export const defaultMetadata: Metadata = {
       { sizes: '152x152', type: 'image/png', url: '/static/apple-icon-152x152.png' },
       { sizes: '180x180', type: 'image/png', url: '/static/apple-icon-180x180.png' },
     ],
-    icon: [{ url: '/static/apple-icon.png' }, new URL('/static/apple-icon.png', 'http://localhost:3000/')],
+    icon: [{ url: '/static/apple-icon.png' }, new URL('/static/apple-icon.png', 'https://forced-batches.kindynos.mx/')],
     other: {
       rel: 'apple-icon-precomposed',
       url: '/static/apple-icon-precomposed.png',
@@ -29,6 +29,7 @@ export const defaultMetadata: Metadata = {
     shortcut: ['/static/apple-icon.png'],
   },
   manifest: '/static/manifest.json',
+  metadataBase: new URL(url),
   openGraph: {
     description,
     title,
