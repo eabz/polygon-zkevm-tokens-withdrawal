@@ -16,23 +16,23 @@ This project uses lot of stuff as:
 First of all, install the dependencies to run this app:
 
 - [nodejs](https://nodejs.org)
-- [yarn](https://yarnpkg.com/)
+- [pnpm](https://pnpm.io/)
 
 ```bash
 # Clone this repository
 $ git clone https://github.com/eabz/polygon-zkevm-tokens-withdrawal && cd polygon-zkevm-tokens-withdrawal
 
 # Install dependencies
-$ yarn install
+$ pnpm install
 
 # Compiles and hot-reloads for development
-$ yarn dev
+$ pnpm dev
 
 # Compiles and minifies for production
-$ yarn build
+$ pnpm build
 
-# Lints and fixes files
-$ yarn lint
+# Lints and fixes filespnpm 
+$ pnpm lint
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
