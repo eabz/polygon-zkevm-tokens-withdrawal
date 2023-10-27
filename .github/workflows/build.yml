@@ -11,34 +11,34 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
+      - uses: pnpm/action-setup@v2
         with:
-          node-version: ${{ matrix.node-version }}
-          cache: yarn
+          version: "latest"
+
+      - uses: actions/setup-node@v3
+        with:
+          cache: "pnpm"
 
       - name: Install Dependencies
-        run: yarn install --frozen-lockfile
+        run: pnpm i
 
       - name: Lint Project
-        run: yarn lint
+        run: pnpm lint
 
       - name: Check TS types
-        run: yarn tscheck
+        run: pnpm tscheck
 
-      - name: Cache Next.js
-        uses: actions/cache@v3
-        id: nextjs-cache
-        with:
-          path: |
-            ~/.npm
-            ${{ github.workspace }}/.next/cache
-          key: ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('**.[jt]s', '**.[jt]sx') }}
-          restore-keys: |
-            ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-
-            
       - name: Build Project
-        run: yarn build
+        run: pnpm build
+
+      - name: Publish
+        uses: cloudflare/pages-action@1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: dceb6493b77b6969548feab1435b0b5d
+          projectName: 'polygon-zkevm-tokens-withdrawal'
+          directory: '.vercel/output/static/'
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          wranglerVersion: '3'
