@@ -3,9 +3,7 @@ name: Validate Build
 on:
   push:
     branches:
-      - main
-  pull_request:
-    types: [ready_for_review, synchronize, opened]
+      - master
 
 jobs:
   build:
