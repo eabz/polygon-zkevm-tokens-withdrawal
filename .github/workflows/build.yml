@@ -30,13 +30,3 @@ jobs:
 
       - name: Build Project
         run: pnpm build
-
-      - name: Publish
-        uses: cloudflare/pages-action@1
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: dceb6493b77b6969548feab1435b0b5d
-          projectName: 'polygon-zkevm-tokens-withdrawal'
-          directory: '.vercel/output/static/'
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
-          wranglerVersion: '3'
